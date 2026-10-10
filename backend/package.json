@@ -1,0 +1,40 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node app.js",
+    "dev": "node --watch app.js",
+    "db:init": "node scripts/initializeEmptyDatabase.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "google-auth-library": "^11.2.0",
+    "helmet": "^8.3.0",
+    "joi": "^18.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.1.0",
+    "pg": "^8.21.0",
+    "redis": "^6.3.0",
+    "sequelize": "^6.37.8",
+    "socket.io": "^4.8.4"
+  },
+  "overrides": {
+    "sequelize": {
+      "uuid": "^11.1.1"
+    }
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.4"
+  }
+}
