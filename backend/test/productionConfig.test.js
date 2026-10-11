@@ -36,7 +36,7 @@ test("production configuration requires secure origins, independent keys, and TL
         process.env.CSRF_SECRET = process.env.ACCESS_TOKEN_SECRET;
         assert.throws(validateProductionConfig, /must be different/);
         process.env.CSRF_SECRET = "b".repeat(40);
-        process.env.REDIS_URL = "redis://redis.example.com:6379";
+        process.env.REDIS_URL = "redis://redis.example.com:6380";
         assert.throws(validateProductionConfig, /rediss:\/\/ TLS/);
         process.env.REDIS_URL = "rediss://redis.example.com:6380";
         process.env.CORS_ORIGINS = "https://app.example.com,http://bad.example.com";
