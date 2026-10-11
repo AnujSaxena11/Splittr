@@ -12,10 +12,7 @@ test("production configuration requires secure origins, independent keys, and TL
     const original = { ...process.env };
     Object.assign(process.env, {
         NODE_ENV: "production",
-        DB_NAME: "splitter",
-        DB_USER: "splitter",
-        DB_PASSWORD: "test-only-database-password",
-        DB_HOST: "db.example.com",
+        DB_URL: "postgresql://splitter:test-only-database-password@db.example.com/splitter?sslmode=require",
         ACCESS_TOKEN_SECRET: "a".repeat(40),
         CSRF_SECRET: "b".repeat(40),
         OTP_SECRET: "c".repeat(40),
@@ -30,9 +27,16 @@ test("production configuration requires secure origins, independent keys, and TL
         DB_SSL: "true",
         DB_SSL_REJECT_UNAUTHORIZED: "true"
     });
+    delete process.env.DB_NAME;
+    delete process.env.DB_USER;
+    delete process.env.DB_PASSWORD;
+    delete process.env.DB_HOST;
 
     try {
         assert.doesNotThrow(validateProductionConfig);
+        process.env.DB_URL = "https://db.example.com";
+        assert.throws(validateProductionConfig, /DB_URL must use the postgres:\/\//);
+        process.env.DB_URL = "postgresql://splitter:test-only-database-password@db.example.com/splitter?sslmode=require";
         process.env.CSRF_SECRET = process.env.ACCESS_TOKEN_SECRET;
         assert.throws(validateProductionConfig, /must be different/);
         process.env.CSRF_SECRET = "b".repeat(40);

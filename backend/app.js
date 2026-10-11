@@ -70,13 +70,19 @@ app.use((error, req, res, next) => {
 
 function validateProductionConfig() {
     const required = [
-        "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST", "ACCESS_TOKEN_SECRET",
+        "ACCESS_TOKEN_SECRET",
         "CSRF_SECRET", "OTP_SECRET", "REDIS_URL", "CORS_ORIGINS", "FRONTEND_URL",
         "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_CALLBACK_URL",
         "EMAIL_USER", "EMAIL_PASS",
     ];
     const missing = required.filter((name) => !process.env[name]);
+    if (!process.env.DB_URL && ["DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST"].some((name) => !process.env[name])) {
+        missing.unshift("DB_URL (or DB_NAME, DB_USER, DB_PASSWORD, DB_HOST)");
+    }
     if (missing.length) throw new Error(`Missing required production configuration: ${missing.join(", ")}`);
+    if (process.env.DB_URL && !["postgres:", "postgresql:"].includes(new URL(process.env.DB_URL).protocol)) {
+        throw new Error("DB_URL must use the postgres:// or postgresql:// protocol");
+    }
     if (process.env.ACCESS_TOKEN_SECRET.length < 32) {
         throw new Error("ACCESS_TOKEN_SECRET must contain at least 32 characters in production");
     }
