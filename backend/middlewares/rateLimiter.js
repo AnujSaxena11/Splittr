@@ -102,7 +102,7 @@ function createRateLimiter({ name, capacity, refillPerSecond }) {
 }
 
 module.exports = {
-  authRateLimit: createRateLimiter({ name: "auth", capacity: 10, refillPerSecond: 1 / 60 }),
+  authRateLimit: createRateLimiter({ name: "auth", capacity: 50, refillPerSecond: 2/60 }),
   apiRateLimit: createRateLimiter({ name: "api", capacity: 120, refillPerSecond: 2 }),
   connectRateLimitStore: ensureRedisConnected,
   closeRateLimitConnection: async () => {

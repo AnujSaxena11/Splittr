@@ -9,14 +9,6 @@ const email = Joi.string()
             'string.empty': 'Email is required',
         });
 
-const loginPassword = Joi.string()
-        .pattern(new RegExp('^[a-zA-Z0-9_$@]{3,72}$'))
-        .required()
-        .messages({
-            'string.pattern.base': 'Password must be 3 to 72 characters long',
-            'string.empty': 'Password is required'
-        });
-
 const password = Joi.string()
         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[_$@])[a-zA-Z0-9_$@]{12,72}$/)
         .required()
@@ -57,7 +49,7 @@ const signUpSchema = Joi.object({
 
 const loginSchema = Joi.object({
     email,
-    password: loginPassword
+    password: password
 });
 
 const forgetPasswordSchema = Joi.object({
