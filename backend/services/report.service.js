@@ -17,7 +17,7 @@ async function getExpenses(userId, range, category) {
     return ExpenseData.findAll({
         where, 
         order: [["date", "ASC"], ["id", "ASC"]], 
-        attributes: ["id", "amount", "category", "desc", "date"]
+        attributes: ["id", "amount", "category", "desc", "paid_to", "date"]
     });
 }
 
@@ -37,7 +37,7 @@ async function getGroupExpenses(userId, groupIds, range, category) {
             model: ExpenseData,
             required: true,
             where: expenseWhere,
-            attributes: ["id", "category", "desc", "date", "groupId"]
+            attributes: ["id", "category", "desc", "paid_to", "date", "groupId"]
         }]
     });
 
@@ -46,6 +46,7 @@ async function getGroupExpenses(userId, groupIds, range, category) {
         const expense = value.ExpenseDatum || value.ExpenseData;
         return {
             ...expense,
+            title: expense.title || expense.desc,
             amount: Math.round(Number(value.shareAmount) * 100) / 100
         };
     });

@@ -50,7 +50,25 @@ test("report analysis aggregates totals, categories, daily values, and compariso
     assert.equal(report.comparison.difference, 30);
     assert.equal(report.comparison.percentageChange, 300);
     assert.equal(report.topExpenses[0].description, "Internet");
+    assert.equal(report.topExpenses[0].name, "");
     assert.ok(report.insights.some((insight) => insight.includes("largest spending category")));
+});
+
+test("report top expenses include the personal expense name", () => {
+    const range = { startDate: "2026-10-01", endDate: "2026-10-01" };
+    const expenses = [{
+        id: 1,
+        amount: "12.50",
+        category: "Food",
+        paid_to: "Corner Market",
+        desc: "Lunch",
+        date: "2026-10-01"
+    }];
+
+    const report = analyzeReport(expenses, [], range, range, "custom", null);
+
+    assert.equal(report.topExpenses[0].name, "Corner Market");
+    assert.equal(report.topExpenses[0].description, "Lunch");
 });
 
 test("category report filters the chosen category against total expenses", () => {

@@ -1,6 +1,6 @@
-# Splitter
+# Splittr
 
-Splitter is a shared-expense app built with an Express 5 API, PostgreSQL/Sequelize, and a React 19 + Vite frontend. The web client provides account access, personal expenses, groups and join requests, group expense splits, and spending reports.
+Splittr is a shared-expense app built with an Express 5 API, PostgreSQL/Sequelize, and a React 19 + Vite frontend. The web client provides account access, personal expenses, groups and join requests, group expense splits, and spending reports.
 
 ## Requirements
 
@@ -136,11 +136,11 @@ npm ci
 $env:VITE_API_URL = "https://<your-deployed-backend-origin>"
 $env:VITE_GOOGLE_WEB_CLIENT_ID = "<your-google-web-application-client-id>"
 # Optional: set this to the public release asset URL when it is available.
-$env:VITE_ANDROID_DOWNLOAD_URL = "https://github.com/<public-owner>/<public-release-repo>/releases/latest/download/splitter-android.apk"
+$env:VITE_ANDROID_DOWNLOAD_URL = "https://github.com/<public-owner>/<public-release-repo>/releases/latest/download/EzSplittr.apk"
 npm run android:release
 ```
 
-`npm run android:release` builds React, synchronizes Capacitor's Android project, builds `assembleRelease` using the configured signing key, and copies the signed APK to `frontend/distribution/splitter-android.apk`. Its Gradle source artifact is `frontend/android/app/build/outputs/apk/release/app-release.apk`. To inspect/open the native project separately, use `npm run cap:open` from `frontend`. Increment `versionCode` and update `versionName` in `frontend/android/app/build.gradle` for every release; Android rejects an update with a non-increasing version code.
+`npm run android:release` builds React, synchronizes Capacitor's Android project, builds `assembleRelease` using the configured signing key, and copies the signed APK to `frontend/distribution/EzSplittr.apk`. Its Gradle source artifact is `frontend/android/app/build/outputs/apk/release/app-release.apk`. To inspect/open the native project separately, use `npm run cap:open` from `frontend`. Increment `versionCode` and update `versionName` in `frontend/android/app/build.gradle` for every release; Android rejects an update with a non-increasing version code.
 
 ### Free direct hosting and updates
 
@@ -149,12 +149,12 @@ No deployment provider or existing APK host is configured in this checkout. GitH
 After the public release repository exists, publish the APK from a machine authenticated with write access:
 
 ```powershell
-gh release create v1.0.0 .\distribution\splitter-android.apk --repo <public-owner>/<public-release-repo> --title "Splitter Android v1.0.0" --notes "Initial Android release"
+gh release create v1.0.0 .\distribution\EzSplittr.apk --repo <public-owner>/<public-release-repo> --title "EzSplittr Android v1.0.0" --notes "Initial Android release"
 ```
 
-Use the stable asset URL `https://github.com/<public-owner>/<public-release-repo>/releases/latest/download/splitter-android.apk` as `VITE_ANDROID_DOWNLOAD_URL` in the website hosting build environment, then redeploy the web frontend. Future versions must be signed with the same key, use a higher Android `versionCode`, and upload the same asset filename to a newer GitHub release (for example, `gh release create v1.0.1 ...`). The `latest/download` URL then resolves to that release without changing the website link. Publishing requires release-repository write permission; downloading the public asset does not.
+Use the stable asset URL `https://github.com/<public-owner>/<public-release-repo>/releases/latest/download/EzSplittr.apk` as `VITE_ANDROID_DOWNLOAD_URL` in the website hosting build environment, then redeploy the web frontend. Using `EzSplittr.apk` as the release asset name ensures Android users see the correct filename when downloading. Future versions must be signed with the same key, use a higher Android `versionCode`, and upload the same asset filename to a newer GitHub release (for example, `gh release create v1.0.1 ...`). The `latest/download` URL then resolves to that release without changing the website link. Publishing requires release-repository write permission; downloading the public asset does not.
 
-Install on Android by opening the public HTTPS release link on the phone, allowing the browser/file manager to install apps from that source when Android prompts, then opening the downloaded APK. For USB installation with Android platform tools, run `adb install -r frontend/distribution/splitter-android.apk`.
+Install on Android by opening the public HTTPS release link on the phone, allowing the browser/file manager to install apps from that source when Android prompts, then opening the downloaded APK. For USB installation with Android platform tools, run `adb install -r frontend/distribution/EzSplittr.apk`.
 
 ### Android limitations to verify before distribution
 

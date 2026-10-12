@@ -10,6 +10,7 @@ function normalizeExpense(expense) {
         id: value.id,
         amount: Number(value.amount) || 0,
         category: value.category || "Others",
+        name: value.paid_to || value.title || (value.scope === "group" ? value.desc : ""),
         description: value.desc || value.description || "",
         date: String(value.date).slice(0, 10)
     };

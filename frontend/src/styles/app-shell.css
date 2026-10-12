@@ -24,6 +24,7 @@ button:disabled {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 244px minmax(0, 1fr);
+  color-scheme: light;
   background: var(--canvas);
   border-inline: 1px solid rgba(30, 33, 28, 0.06);
 }

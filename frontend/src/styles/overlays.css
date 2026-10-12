@@ -154,6 +154,11 @@
   transition: border-color 130ms ease, box-shadow 130ms ease;
 }
 
+#root .app-frame select option {
+  color: #32362f;
+  background-color: #fffefa;
+}
+
 .field textarea {
   min-height: 76px;
   resize: vertical;

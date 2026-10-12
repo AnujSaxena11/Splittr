@@ -70,6 +70,11 @@
   border-color: #343a34;
 }
 
+#root .app-frame[data-theme='dark'] select option {
+  color: #e4e8df;
+  background-color: #242a25;
+}
+
 #root .app-frame[data-theme='dark'] :is(
   h1, h2, h3, h4, p, label, legend, th, td, strong,
   .brand, .nav-item, .topbar-search, .button--quiet,
