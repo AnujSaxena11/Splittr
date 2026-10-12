@@ -1,4 +1,4 @@
-import { EmptyState, ExpenseRow, Icon, ListSkeleton, PaginatedList } from '../shared'
+import { EmptyState, ExpenseRow, Icon, ListSkeleton, PaginatedList, ThemedSelect } from '../shared'
 import { categories } from '../../utils/constants'
 
 export function ExpensesPage({
@@ -48,19 +48,21 @@ export function ExpensesPage({
               {expenses.length} {expenses.length === 1 ? 'expense' : 'expenses'}
             </h3>
           </div>
-          <label className="filter-select">
-            <span className="sr-only">Filter by category</span>
-            <select
+          <div className="filter-select">
+            <ThemedSelect
+              className="themed-select--filter"
+              label="Filter by category"
               value={categoryFilter}
-              onChange={(event) => onCategoryChange(event.target.value)}
-            >
-              <option value="all">All categories</option>
-              {categories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-            <Icon name="chevron" size={14} />
-          </label>
+              onChange={onCategoryChange}
+              options={[
+                { value: 'all', label: 'All categories' },
+                ...categories.map((category) => ({
+                  value: category,
+                  label: category,
+                })),
+              ]}
+            />
+          </div>
         </div>
 
         {loading ? (

@@ -278,7 +278,8 @@ describe('EzSplittr application', () => {
     const dialog = screen.getByRole('dialog', { name: 'Add an expense' })
     await userEvent.type(within(dialog).getByLabelText('Paid to'), 'Corner Market')
     await userEvent.type(within(dialog).getByLabelText('Amount'), '18.5')
-    await userEvent.selectOptions(within(dialog).getByLabelText('Category'), 'Food')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Category' }))
+    await userEvent.click(within(dialog).getByRole('option', { name: 'Food' }))
     await userEvent.type(within(dialog).getByLabelText(/Note/), 'Lunch')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save expense' }))
 
@@ -903,9 +904,11 @@ describe('EzSplittr application', () => {
     await navigateTo('Reports')
     await screen.findByLabelText('Report scope')
 
-    await userEvent.selectOptions(screen.getByLabelText('Report scope'), 'group')
+    await userEvent.click(screen.getByRole('button', { name: 'Report scope' }))
+    await userEvent.click(screen.getByRole('option', { name: 'Group' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Group' }))
     expect(screen.getByRole('option', { name: 'Weekend plans' })).toBeInTheDocument()
-    await userEvent.selectOptions(screen.getByLabelText('Group'), '42')
+    await userEvent.click(screen.getByRole('option', { name: 'Weekend plans' }))
     await userEvent.click(screen.getByRole('button', { name: 'Build report' }))
 
     await waitFor(() => expect(api.getReport).toHaveBeenCalledWith(expect.objectContaining({
@@ -913,6 +916,20 @@ describe('EzSplittr application', () => {
       scope: 'group',
       groupId: '42',
     })))
+  })
+
+  it('supports keyboard navigation in themed dropdowns', async () => {
+    renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+    await navigateTo('Reports')
+    await screen.findByLabelText('Report scope')
+
+    const scope = screen.getByRole('button', { name: 'Report scope' })
+    scope.focus()
+    await userEvent.keyboard('{ArrowDown}{ArrowDown}{Enter}')
+
+    expect(scope).toHaveTextContent('Group')
+    expect(screen.queryByRole('listbox', { name: 'Report scope' })).not.toBeInTheDocument()
   })
 
   it('completes the password reset form using the verified OTP contract', async () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Field, Icon, MetricCard } from '../shared'
+import { Field, Icon, MetricCard, ThemedSelect } from '../shared'
 import { categories } from '../../utils/constants'
 import { formatAmount, formatDate } from '../../utils/formatting'
 
@@ -50,56 +50,69 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
       <form className="surface-panel report-filters" onSubmit={submit}>
         <label className="field">
           <span>Report scope</span>
-          <select value={scope} onChange={(event) => setScope(event.target.value)}>
-            <option value="self">Self</option>
-            <option value="group">Group</option>
-          </select>
+          <ThemedSelect
+            label="Report scope"
+            value={scope}
+            onChange={setScope}
+            options={[
+              { value: 'self', label: 'Self' },
+              { value: 'group', label: 'Group' },
+            ]}
+          />
         </label>
 
         {scope === 'group' && (
           <label className="field">
             <span>Group</span>
-            <select value={groupId} onChange={(event) => setGroupId(event.target.value)}>
-              <option value="all">All groups</option>
-              {groups
+            <ThemedSelect
+              label="Group"
+              value={groupId}
+              onChange={setGroupId}
+              options={[
+                { value: 'all', label: 'All groups' },
+                ...groups
                 .filter((item) => item.status === 'accepted')
                 .map((item) => {
                   const group = item.group || item
                   const id = item.groupId ?? group.id
 
-                  return (
-                    <option key={id} value={id}>
-                      {group.name || 'Untitled group'}
-                    </option>
-                  )
-                })}
-            </select>
+                  return { value: String(id), label: group.name || 'Untitled group' }
+                }),
+              ]}
+            />
           </label>
         )}
 
         <label className="field">
           <span>Report type</span>
-          <select value={type} onChange={(event) => setType(event.target.value)}>
-            <option value="monthly">Monthly</option>
-            <option value="weekly">Weekly</option>
-            <option value="custom">Custom dates</option>
-            <option value="category">Category focus</option>
-          </select>
+          <ThemedSelect
+            label="Report type"
+            value={type}
+            onChange={setType}
+            options={[
+              { value: 'monthly', label: 'Monthly' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'custom', label: 'Custom dates' },
+              { value: 'category', label: 'Category focus' },
+            ]}
+          />
         </label>
 
         {type === 'monthly' && (
           <div className="field-row">
             <label className="field">
               <span>Month</span>
-              <select value={month} onChange={(event) => setMonth(event.target.value)}>
-                {Array.from({ length: 12 }, (_, index) => (
-                  <option key={index + 1} value={index + 1}>
-                    {new Date(2000, index, 1).toLocaleDateString(undefined, {
+              <ThemedSelect
+                label="Month"
+                value={month}
+                onChange={setMonth}
+                options={Array.from({ length: 12 }, (_, index) => ({
+                  value: String(index + 1),
+                  label: new Date(2000, index, 1).toLocaleDateString(undefined, {
                       month: 'long',
-                    })}
-                  </option>
-                ))}
-              </select>
+                    }),
+                }))}
+              />
             </label>
             <Field
               label="Year"
@@ -136,11 +149,12 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
         {type === 'category' && (
           <label className="field">
             <span>Category</span>
-            <select value={category} onChange={(event) => setCategory(event.target.value)}>
-              {categories.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <ThemedSelect
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              options={categories.map((item) => ({ value: item, label: item }))}
+            />
           </label>
         )}
 

@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { api } from '../../api'
 import { categories } from '../../utils/constants'
 import { getErrorMessage } from '../../utils/formatting'
-import { Dialog, Field } from '../shared'
+import { Dialog, Field, ThemedSelect } from '../shared'
 
 export function ExpenseForm({ onClose, onCreated }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [category, setCategory] = useState('Food')
 
   async function submit(event) {
     event.preventDefault()
@@ -51,14 +52,19 @@ export function ExpenseForm({ onClose, onCreated }) {
             placeholder="0.00"
             required
           />
-          <label className="field">
+          <div className="field">
             <span>Category</span>
-            <select name="category" defaultValue="Food" required>
-              {categories.map((category) => (
-                <option key={category}>{category}</option>
-              ))}
-            </select>
-          </label>
+            <ThemedSelect
+              name="category"
+              label="Category"
+              value={category}
+              onChange={setCategory}
+              options={categories.map((category) => ({
+                value: category,
+                label: category,
+              }))}
+            />
+          </div>
         </div>
         <label className="field">
           <span>

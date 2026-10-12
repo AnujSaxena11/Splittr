@@ -35,9 +35,9 @@
   .theme-toggle,
   .utility-button,
   .button--quiet,
-  .filter-select select,
+  .themed-select__trigger,
+  .themed-select__options,
   .field input,
-  .field select,
   .field textarea,
   .dialog,
   .share-input,
@@ -50,6 +50,21 @@
   border-color: #3a413a;
   color: #e4e8df;
   background-color: #242a25;
+}
+
+#root .app-frame[data-theme='dark'] .themed-select__option {
+  color: #cbd2c6;
+}
+
+#root .app-frame[data-theme='dark'] .themed-select__option:hover,
+#root .app-frame[data-theme='dark'] .themed-select__option:focus,
+#root .app-frame[data-theme='dark'] .themed-select__option.is-selected {
+  color: #e5ecdf;
+  background-color: #343d33;
+}
+
+#root .app-frame[data-theme='dark'] .themed-select__option svg {
+  color: #b5c7a6;
 }
 
 #root .app-frame[data-theme='dark'] :is(

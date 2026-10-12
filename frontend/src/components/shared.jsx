@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { formatAmount, formatDate, formatExpenseDateTime } from '../utils/formatting'
 
 
@@ -30,6 +30,124 @@ export function Icon({ name, size = 19 }) {
     <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
       {paths[name] || paths.spark}
     </svg>
+  )
+}
+
+export function ThemedSelect({
+  value,
+  onChange,
+  options,
+  label,
+  name,
+  className = '',
+}) {
+  const id = useId()
+  const rootRef = useRef(null)
+  const triggerRef = useRef(null)
+  const optionRefs = useRef([])
+  const [open, setOpen] = useState(false)
+  const selectedIndex = Math.max(
+    options.findIndex((option) => option.value === String(value)),
+    0,
+  )
+  const [activeIndex, setActiveIndex] = useState(selectedIndex)
+  const selectedOption = options[selectedIndex]
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    optionRefs.current[activeIndex]?.focus()
+    const onPointerDown = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open, activeIndex])
+
+  function openMenu(index = selectedIndex) {
+    setActiveIndex(index)
+    setOpen(true)
+  }
+
+  function chooseOption(option) {
+    onChange(option.value)
+    setOpen(false)
+    triggerRef.current?.focus()
+  }
+
+  function handleKeyDown(event) {
+    if (!open) {
+      if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) return
+      event.preventDefault()
+      openMenu()
+      return
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setOpen(false)
+      triggerRef.current?.focus()
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      setActiveIndex((index) => (index + direction + options.length) % options.length)
+    } else if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault()
+      setActiveIndex(event.key === 'Home' ? 0 : options.length - 1)
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      chooseOption(options[activeIndex])
+    } else if (event.key === 'Tab') {
+      setOpen(false)
+    }
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className={`themed-select ${className}`}
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        ref={triggerRef}
+        className="themed-select__trigger"
+        type="button"
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? `${id}-options` : undefined}
+        onClick={() => (open ? setOpen(false) : openMenu())}
+      >
+        <span>{selectedOption?.label || ''}</span>
+        <Icon name="chevron" size={16} />
+      </button>
+      {name && <input type="hidden" name={name} value={value} />}
+      {open && (
+        <div
+          className="themed-select__options"
+          id={`${id}-options`}
+          role="listbox"
+          aria-label={label}
+        >
+          {options.map((option, index) => (
+            <div
+              key={option.value}
+              ref={(element) => { optionRefs.current[index] = element }}
+              className={`themed-select__option ${option.value === String(value) ? 'is-selected' : ''}`}
+              id={`${id}-option-${index}`}
+              role="option"
+              aria-selected={option.value === String(value)}
+              tabIndex={-1}
+              onClick={() => chooseOption(option)}
+              onMouseMove={() => setActiveIndex(index)}
+            >
+              <span>{option.label}</span>
+              {option.value === String(value) && <Icon name="check" size={16} />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
