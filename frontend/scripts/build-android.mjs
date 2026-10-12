@@ -76,6 +76,6 @@ const apkPath = join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'a
 if (!existsSync(apkPath)) fail(`Gradle completed without creating ${apkPath}`)
 const distributionDir = join(frontendDir, 'distribution')
 mkdirSync(distributionDir, { recursive: true })
-const distributionPath = join(distributionDir, 'splitter-android.apk')
+const distributionPath = join(distributionDir, 'EzSplittr.apk')
 copyFileSync(apkPath, distributionPath)
 console.log(`Signed APK copied to ${distributionPath}`)

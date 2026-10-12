@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { api } from './api'
@@ -84,7 +84,7 @@ function setDefaultResponses() {
     categoryBreakdown: [{ category: 'Food', amount: 60, percentage: 67, transactionCount: 2 }],
     dailyTrend: [{ date: '2026-06-01', amount: 30 }, { date: '2026-06-02', amount: 60 }],
     insights: ['Food was your largest spending category.'],
-    topExpenses: [{ id: 1, amount: 60, description: 'Dinner', category: 'Food', date: '2026-06-01' }],
+    topExpenses: [{ id: 1, amount: 60, name: 'Corner Market', description: 'Dinner', category: 'Food', date: '2026-06-01' }],
   })
   api.listNotifications.mockResolvedValue({ notifications: [] })
   api.markNotificationRead.mockResolvedValue({ notification: {} })
@@ -101,7 +101,7 @@ async function navigateTo(label) {
   await userEvent.click(buttons[0])
 }
 
-describe('Splitter application', () => {
+describe('EzSplittr application', () => {
   beforeEach(() => {
     setDefaultResponses()
     window.localStorage.clear()
@@ -119,7 +119,7 @@ describe('Splitter application', () => {
     api.me.mockRejectedValueOnce({ status: 401, message: 'Unauthorized access' })
     renderApp()
 
-    expect(await screen.findByRole('heading', { name: 'Sign in to Splitter' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Email address' })).toHaveAttribute('type', 'email')
     expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password')
     await userEvent.click(screen.getByRole('button', { name: 'Show password' }))
@@ -138,7 +138,7 @@ describe('Splitter application', () => {
     signInWithGoogle.mockResolvedValue('google-id-token')
 
     renderApp()
-    await screen.findByRole('heading', { name: 'Sign in to Splitter' })
+    await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })
     await userEvent.click(screen.getByRole('button', { name: 'Continue with Google' }))
 
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
@@ -165,39 +165,100 @@ describe('Splitter application', () => {
     expect(screen.getByRole('button', { name: 'Switch to light theme' })).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('provides a settings placeholder and an unpublished Android download page', async () => {
+  it('shows monthly group expenses and group-sharing content on the overview', async () => {
+    renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+
+    expect(await screen.findByText('GROUP EXPENSES THIS MONTH')).toBeInTheDocument()
+    expect(screen.getByText('90.00')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Sharing something with a group?' })).toBeInTheDocument()
+    expect(screen.queryByText('A GOOD HABIT')).not.toBeInTheDocument()
+    expect(screen.queryByText('Average personal expense')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(api.getReport).toHaveBeenCalledWith(expect.objectContaining({
+        type: 'monthly',
+        scope: 'group',
+        month: String(new Date().getMonth() + 1),
+        year: String(new Date().getFullYear()),
+      }))
+    })
+  })
+
+  it('keeps report text readable on light report blocks in dark mode', async () => {
+    const view = renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }))
+
+    const spendingCard = view.container.querySelector('.overview-card--highlight')
+    expect(view.container.querySelector('.app-frame')).toHaveAttribute('data-theme', 'dark')
+    expect(spendingCard.querySelector('.overview-card__decor')).toBeInTheDocument()
+
+    await navigateTo('Reports')
+    await screen.findByLabelText('Report scope')
+    await userEvent.click(screen.getByRole('button', { name: 'Build report' }))
+    await screen.findByRole('heading', { name: 'What made up the total' })
+
+    const reportTotal = view.container.querySelector('.report-metric > strong')
+    const reportMetricLabel = view.container.querySelector('.report-metric > span')
+    const categoryLabel = view.container.querySelector('.category-bar__label > span')
+    const insight = view.container.querySelector('.insights-strip p')
+    const insightHeading = view.container.querySelector('.insights-strip .section-kicker')
+
+    expect(reportTotal).toHaveTextContent('90.00')
+    expect(reportMetricLabel).toHaveTextContent('TOTAL SPENT')
+    expect(categoryLabel).toHaveTextContent('Food')
+    expect(insight).toHaveTextContent('Food was your largest spending category.')
+    expect(insightHeading).toHaveTextContent('A FEW THINGS TO NOTICE')
+  })
+
+  it('keeps app download controls off the signed-in workspace', async () => {
     vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', '')
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
 
     const settingsButton = screen.getByRole('button', { name: 'Settings (coming soon)' })
-    const downloadButton = within(document.querySelector('.topbar__actions')).getByRole('button', { name: 'Download Android App' })
     const themeButton = screen.getByRole('button', { name: 'Switch to dark theme' })
     const bellButton = screen.getByRole('button', { name: /^Notifications/ })
-    expect(settingsButton.compareDocumentPosition(downloadButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(downloadButton.compareDocumentPosition(themeButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(settingsButton.compareDocumentPosition(themeButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(themeButton.compareDocumentPosition(bellButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.queryByRole('link', { name: /Download/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Download/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Android' })).not.toBeInTheDocument()
 
     await userEvent.click(settingsButton)
     expect(await screen.findByRole('status')).toHaveTextContent('Settings are coming soon.')
-
-    await userEvent.click(downloadButton)
-    expect(await screen.findByRole('heading', { name: 'Take Splitter with you.' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'APK not published yet' })).toBeDisabled()
-    expect(screen.getAllByRole('button', { name: 'Download Android App' })).toHaveLength(2)
   })
 
-  it('links to the configured public APK and requests a stable APK filename', async () => {
-    vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', 'https://downloads.test/releases/latest/download/splitter-android.apk')
+  it('shows an unpublished app download state without requiring sign-in', async () => {
+    vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', '')
+    api.me.mockRejectedValueOnce({ status: 401 })
     renderApp()
-    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
-    const topbarDownloadLink = within(document.querySelector('.topbar__actions')).getByRole('link', { name: 'Download Android App' })
-    expect(topbarDownloadLink).toHaveAttribute('href', 'https://downloads.test/releases/latest/download/splitter-android.apk')
-    expect(topbarDownloadLink).toHaveAttribute('download', 'splitter-android.apk')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Download Android App' }))
-    expect(await screen.findByRole('heading', { name: 'Take Splitter with you.' })).toBeInTheDocument()
-    expect(within(document.querySelector('.download-card')).getByRole('link', { name: 'Download Android App' })).toHaveAttribute('download', 'splitter-android.apk')
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
+    expect(screen.getByText('Get EzSplittr for Android')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Coming soon' })).toBeDisabled()
+  })
+
+  it('allows downloading the configured APK before signing in', async () => {
+    vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', 'https://downloads.test/releases/latest/download/EzSplittr.apk')
+    api.me.mockRejectedValueOnce({ status: 401 })
+    renderApp()
+
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
+    const downloadLink = screen.getByRole('link', { name: 'Download' })
+    expect(downloadLink).toHaveAttribute('href', 'https://downloads.test/releases/latest/download/EzSplittr.apk')
+    expect(downloadLink).toHaveAttribute('download', 'EzSplittr.apk')
+  })
+
+  it('hides the app download option in the Android application', async () => {
+    const platformSpy = vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android')
+    api.me.mockRejectedValueOnce({ status: 401 })
+    renderApp()
+
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
+    expect(screen.queryByText('Get EzSplittr for Android')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Download' })).not.toBeInTheDocument()
+    platformSpy.mockRestore()
   })
 
   it('logs in and loads real account data, then adds a personal expense', async () => {
@@ -249,7 +310,8 @@ describe('Splitter application', () => {
       amount: index + 1,
       category: 'Food',
       date: `2026-10-${String(21 - index).padStart(2, '0')}`,
-    }))
+      createdAt: new Date(Date.UTC(2026, 9, 21 - index, 12)).toISOString(),
+    })).reverse()
     api.listExpenses.mockResolvedValue({ allExpenses: expenses })
     renderApp()
 
@@ -264,6 +326,36 @@ describe('Splitter application', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Next Expense history page' }))
     expect(await screen.findByText('Store 21')).toBeInTheDocument()
     expect(screen.queryByText('Store 1')).not.toBeInTheDocument()
+  })
+
+  it('sorts personal expenses by newest timestamp, shows time, and opens only existing notes', async () => {
+    api.listExpenses.mockResolvedValue({
+      allExpenses: [
+        { id: 1, paid_to: 'Older Shop', amount: 10, category: 'Shopping', date: '2026-10-11', createdAt: '2026-10-11T09:15:00.000Z' },
+        { id: 2, paid_to: 'Corner Market', amount: 20, category: 'Food', desc: 'Lunch with a friend', date: '2026-10-12', createdAt: '2026-10-12T13:45:00.000Z' },
+        { id: 3, paid_to: 'No Note Shop', amount: 5, category: 'Shopping', date: '2026-10-12', createdAt: '2026-10-12T11:30:00.000Z' },
+      ],
+    })
+    renderApp()
+
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+    await navigateTo('Expenses')
+
+    const rows = document.querySelectorAll('.expenses-panel .expense-row')
+    expect(rows[0]).toHaveTextContent('Corner Market')
+    expect(rows[0]).toHaveTextContent(/\d{1,2}:\d{2}/)
+    expect(within(rows[0]).getByText('Note')).toBeInTheDocument()
+    expect(rows[1]).toHaveTextContent('No Note Shop')
+    expect(within(rows[1]).queryByText('Note')).not.toBeInTheDocument()
+    expect(rows[2]).toHaveTextContent('Older Shop')
+    expect(screen.getByRole('button', { name: 'View note for Corner Market' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'View note for No Note Shop' })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'View note for Corner Market' }))
+    expect(screen.getByRole('dialog', { name: 'Corner Market' })).toHaveTextContent('Lunch with a friend')
+    expect(document.querySelector('.dialog-backdrop')).toHaveClass('dialog-backdrop--note')
+    await userEvent.click(screen.getByRole('button', { name: 'Close dialog' }))
+    expect(screen.queryByRole('dialog', { name: 'Corner Market' })).not.toBeInTheDocument()
   })
 
   it('paginates groups by four per page', async () => {
@@ -327,6 +419,41 @@ describe('Splitter application', () => {
     await userEvent.type(within(dialog).getByLabelText('Invite code'), 'a1b2c3d4')
     await userEvent.click(within(dialog).getByRole('button', { name: 'Request to join' }))
     await waitFor(() => expect(api.joinGroup).toHaveBeenCalledWith({ unique_code: 'A1B2C3D4' }))
+  })
+
+  it('copies the group invite code to the clipboard', async () => {
+    api.listGroups.mockResolvedValue({ groups: [{
+      group: { id: 42, name: 'Weekend plans', ownerId: 7, unique_code: 'AB12CD34' },
+      groupId: 42,
+      status: 'accepted',
+    }] })
+    api.getGroup.mockResolvedValue({
+      group: { id: 42, name: 'Weekend plans', ownerId: 7, unique_code: 'AB12CD34' },
+      members: [{ userId: 7, name: 'Jenny Wilson', role: 'admin', status: 'accepted' }],
+    })
+    const clipboardDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+
+    try {
+      renderApp()
+      await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+      await navigateTo('Groups')
+      await userEvent.click(await screen.findByRole('button', { name: /Weekend plans/ }))
+      await userEvent.click(await screen.findByRole('button', { name: 'Copy invite code' }))
+
+      expect(writeText).toHaveBeenCalledWith('AB12CD34')
+      expect(await screen.findByRole('status')).toHaveTextContent('Invite code copied.')
+    } finally {
+      if (clipboardDescriptor) {
+        Object.defineProperty(navigator, 'clipboard', clipboardDescriptor)
+      } else {
+        delete navigator.clipboard
+      }
+    }
   })
 
   it('submits a custom group expense for selected accepted members', async () => {
@@ -633,10 +760,12 @@ describe('Splitter application', () => {
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
     await navigateTo('Reports')
+    await screen.findByLabelText('Report scope')
     await userEvent.click(screen.getByRole('button', { name: 'Build report' }))
 
     expect(await screen.findByRole('heading', { name: 'What made up the total' })).toBeInTheDocument()
     expect(screen.getByText('Food was your largest spending category.')).toBeInTheDocument()
+    expect(screen.getByText('Corner Market')).toBeInTheDocument()
     await waitFor(() => expect(api.getReport).toHaveBeenCalledWith(expect.objectContaining({
       type: 'monthly',
       scope: 'self',
@@ -687,6 +816,66 @@ describe('Splitter application', () => {
     await waitFor(() => expect(api.deleteNotification).toHaveBeenCalledWith('event-1'))
   })
 
+  it('closes notifications when the user clicks outside the bell menu', async () => {
+    api.listNotifications.mockResolvedValue({ notifications: [{
+      id: 'outside-event',
+      message: 'A group expense was added',
+      createdAt: new Date().toISOString(),
+      read: false,
+    }] })
+    renderApp()
+    const bell = await screen.findByRole('button', { name: 'Notifications, 1 unread' })
+    await userEvent.click(bell)
+    expect(await screen.findByText('A group expense was added')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Settings (coming soon)' }))
+    expect(screen.queryByText('A group expense was added')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Notifications, 1 unread' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  })
+
+  it('reloads an already selected group when navigating from its notification', async () => {
+    api.listGroups.mockResolvedValue({ groups: [{
+      group: { id: 42, name: 'Weekend plans', ownerId: 7, unique_code: 'AB12CD34' },
+      groupId: 42,
+      status: 'accepted',
+    }] })
+    api.getGroup.mockResolvedValue({
+      group: { id: 42, name: 'Weekend plans', ownerId: 7, unique_code: 'AB12CD34' },
+      members: [{ userId: 7, name: 'Jenny Wilson', role: 'admin', status: 'accepted' }],
+    })
+    renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+    await navigateTo('Groups')
+    await userEvent.click(await screen.findByRole('button', { name: /Weekend plans/ }))
+    await screen.findByRole('tab', { name: 'All expenses' })
+    const groupLoadCount = api.getGroup.mock.calls.length
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Copy invite code' })).toBeInTheDocument())
+
+    act(() => {
+      realtimeMock.listeners.get('group:notification')({
+        id: 'same-group-event',
+        groupId: 42,
+        actorUserId: 8,
+        kind: 'expense',
+        message: 'Dinner was added to Weekend plans',
+        targetTab: 'all-expenses',
+        createdAt: new Date().toISOString(),
+      })
+    })
+    const bell = await screen.findByRole('button', { name: 'Notifications, 1 unread' })
+    await userEvent.click(bell)
+    await userEvent.click(await screen.findByRole('button', { name: /Dinner was added to Weekend plans/ }))
+
+    await waitFor(() => expect(api.getGroup).toHaveBeenCalledTimes(groupLoadCount + 1))
+    expect(await screen.findByRole('tab', { name: 'All expenses' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+  })
+
   it('loads unread notifications created while the user was logged out', async () => {
     api.listNotifications.mockResolvedValueOnce({ notifications: [{
       id: 'offline-event',
@@ -712,6 +901,7 @@ describe('Splitter application', () => {
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
     await navigateTo('Reports')
+    await screen.findByLabelText('Report scope')
 
     await userEvent.selectOptions(screen.getByLabelText('Report scope'), 'group')
     expect(screen.getByRole('option', { name: 'Weekend plans' })).toBeInTheDocument()
@@ -731,7 +921,7 @@ describe('Splitter application', () => {
     api.resetPassword.mockResolvedValue({ message: 'Password reset successful' })
     renderApp()
 
-    await screen.findByRole('heading', { name: 'Sign in to Splitter' })
+    await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })
     await userEvent.click(screen.getByRole('button', { name: 'Forgot password?' }))
     await userEvent.type(screen.getByLabelText('Email address'), 'jenny@example.com')
     await userEvent.click(screen.getByRole('button', { name: 'Send reset code' }))
@@ -747,7 +937,7 @@ describe('Splitter application', () => {
       newPassword: 'FreshSecurePass_9',
       cnewPassword: 'FreshSecurePass_9',
     }))
-    expect(await screen.findByRole('heading', { name: 'Sign in to Splitter' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('Password updated successfully')
     expect(screen.getByLabelText('Email address')).toHaveValue('jenny@example.com')
   })
@@ -755,10 +945,11 @@ describe('Splitter application', () => {
   it('offers device-specific sign-out choices from the navbar and signs out this device', async () => {
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
-    expect(screen.getAllByRole('button', { name: 'Sign out' })).toHaveLength(1)
+    const topbar = document.querySelector('.topbar')
+    expect(within(topbar).getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Account actions' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Jenny Wilson profile')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    await userEvent.click(within(topbar).getByRole('button', { name: 'Sign out' }))
 
     const dialog = screen.getByRole('dialog', { name: 'Sign out?' })
     expect(within(dialog).getByRole('button', { name: 'Sign out on this device' })).toBeInTheDocument()
@@ -767,19 +958,42 @@ describe('Splitter application', () => {
 
     await waitFor(() => expect(api.logout).toHaveBeenCalled())
     expect(api.logoutAll).not.toHaveBeenCalled()
-    expect(await screen.findByRole('heading', { name: 'Sign in to Splitter' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
+  })
+
+  it('provides a sign-out action in the tablet sidebar', async () => {
+    renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+
+    const sidebar = document.querySelector('.sidebar')
+    await userEvent.click(within(sidebar).getByRole('button', { name: 'Sign out' }))
+    expect(screen.getByRole('dialog', { name: 'Sign out?' })).toBeInTheDocument()
+  })
+
+  it('places mobile sign out after Reports and opens the sign-out dialog', async () => {
+    renderApp()
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+
+    const mobileNavigation = screen.getByRole('navigation', { name: 'Mobile navigation' })
+    const menuItems = Array.from(mobileNavigation.querySelectorAll('button'))
+      .map((button) => button.getAttribute('aria-label'))
+    expect(menuItems).toEqual(['Overview', 'Expenses', 'Groups', 'Reports', 'Sign out'])
+
+    await userEvent.click(within(mobileNavigation).getByRole('button', { name: 'Sign out' }))
+    expect(screen.getByRole('dialog', { name: 'Sign out?' })).toBeInTheDocument()
   })
 
   it('supports signing out all devices from the navbar sign-out dialog', async () => {
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
-    await userEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    const topbar = document.querySelector('.topbar')
+    await userEvent.click(within(topbar).getByRole('button', { name: 'Sign out' }))
     const dialog = screen.getByRole('dialog', { name: 'Sign out?' })
     await userEvent.click(within(dialog).getByRole('button', { name: 'Sign out on all devices' }))
 
     await waitFor(() => expect(api.logoutAll).toHaveBeenCalled())
     expect(api.logout).not.toHaveBeenCalled()
-    expect(await screen.findByRole('heading', { name: 'Sign in to Splitter' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Sign in to EzSplittr' })).toBeInTheDocument()
   })
 
   it('offers labeled navigation and group actions for the current member', async () => {

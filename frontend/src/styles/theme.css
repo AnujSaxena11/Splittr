@@ -1,0 +1,210 @@
+#root .app-frame[data-theme='dark'] {
+  --canvas: #171a18;
+  --ink: #e7e9e3;
+  --muted: #a2a99e;
+  --line: #343a34;
+  color-scheme: dark;
+  color: #e7e9e3;
+  background: var(--canvas);
+  border-color: #343a34;
+}
+
+#root .app-frame[data-theme='dark'] .sidebar,
+#root .app-frame[data-theme='dark'] .topbar,
+#root .app-frame[data-theme='dark'] .mobile-nav {
+  border-color: #343a34;
+  background: #1d211e;
+}
+
+#root .app-frame[data-theme='dark'] .topbar {
+  background: rgba(29, 33, 30, 0.96);
+}
+
+#root .app-frame[data-theme='dark'] :is(
+  .help-card,
+  .surface-panel,
+  .overview-card:not(.overview-card--highlight),
+  .group-card,
+  .group-summary-metric,
+  .group-code,
+  .notification-popover,
+  .notification-popover__heading,
+  .notification-item,
+  .topbar-search,
+  .notification-button,
+  .theme-toggle,
+  .utility-button,
+  .button--quiet,
+  .filter-select select,
+  .field input,
+  .field select,
+  .field textarea,
+  .dialog,
+  .share-input,
+  .member-picker,
+  .segmented-control,
+  .segmented-control button.is-selected,
+  .group-activity-tabs,
+  .group-activity-tabs button.is-active
+) {
+  border-color: #3a413a;
+  color: #e4e8df;
+  background-color: #242a25;
+}
+
+#root .app-frame[data-theme='dark'] :is(
+  .topbar,
+  .sidebar,
+  .profile-summary,
+  .expense-row,
+  .settlement-row,
+  .balance-table th,
+  .balance-table td,
+  .settlement-actions-section,
+  .settlement-action-row,
+  .group-activity-sections > section + section,
+  .pagination,
+  .member-picker__row,
+  .dialog__heading
+) {
+  border-color: #343a34;
+}
+
+#root .app-frame[data-theme='dark'] :is(
+  h1, h2, h3, h4, p, label, legend, th, td, strong,
+  .brand, .nav-item, .topbar-search, .button--quiet,
+  .notification-item, .group-card, .expense-row__main strong,
+  .expense-row__amount, .settlement-action-row, .field,
+  .member-picker__row .member-picker__name, .profile-copy strong,
+  .group-hero h2, .group-code strong, .group-summary-metric strong,
+  .group-activity-tabs button, .balance-table tbody th,
+  .dialog__heading h2, .segmented-control button.is-selected
+) {
+  color: #e4e8df;
+}
+
+#root .app-frame[data-theme='dark'] .report-results .report-metric > span {
+  color: #3f443b;
+}
+
+#root .app-frame[data-theme='dark'] .report-results .report-metric > strong {
+  color: #242821;
+}
+
+#root .app-frame[data-theme='dark'] .report-results .report-metric > strong.value-negative {
+  color: #803b2f;
+}
+
+#root .app-frame[data-theme='dark'] .report-results .insights-strip p {
+  color: #3f4539;
+}
+
+#root .app-frame[data-theme='dark'] .report-results .insights-strip .section-kicker {
+  color: #41483b;
+}
+
+#root .app-frame[data-theme='dark'] .category-bar__label > span {
+  color: #c3c9be;
+}
+
+#root .app-frame[data-theme='dark'] .category-bar small,
+#root .app-frame[data-theme='dark'] .trend-column small {
+  color: #b4baaf;
+}
+
+#root .app-frame[data-theme='dark'] :is(.skeleton, .skeleton-list span) {
+  background: linear-gradient(90deg, #292f2a 25%, #353d35 42%, #292f2a 65%);
+  background-size: 300% 100%;
+}
+
+#root .app-frame[data-theme='dark'] .overview-card--highlight {
+  border-color: #d6ddcc;
+  color: #30352c;
+  background: #e9eee2;
+}
+
+#root .app-frame[data-theme='dark'] .overview-card--highlight .overview-card__label {
+  color: #535b4d;
+}
+
+#root .app-frame[data-theme='dark'] .overview-card--highlight .metric-icon {
+  color: #52624a;
+  background: #dce5d2;
+}
+
+#root .app-frame[data-theme='dark'] .overview-card--highlight p {
+  color: #5e6658;
+}
+
+#root .app-frame[data-theme='dark'] .overview-card--highlight .overview-card__decor {
+  border-color: rgba(105, 125, 88, 0.28);
+  box-shadow: 0 0 0 16px rgba(105, 125, 88, 0.09), 0 0 0 34px rgba(105, 125, 88, 0.06);
+}
+
+#root .app-frame[data-theme='dark'] :is(
+  .group-hero,
+  .tip-panel,
+  .settlement-unavailable-note,
+  .settlement-clear-note,
+  .notification-item:hover,
+  .notification-item.is-unread,
+  .group-activity-tabs button,
+  .segmented-control,
+  .field input:disabled
+) {
+  border-color: #3a413a;
+  color: #e4e8df;
+  background-color: #292f2a;
+}
+
+#root .app-frame[data-theme='dark'] .notification-item__copy small,
+#root .app-frame[data-theme='dark'] :is(
+  .section-kicker, .sidebar__label, .profile-copy small, .empty-note,
+  .data-note, .group-card__description, .group-card__footer,
+  .group-summary-metric span, .balance-table thead th,
+  .balance-table tbody th small, .dialog__heading p,
+  .field small, .member-picker legend small, .topbar-search input::placeholder
+) {
+  color: #a2a99e;
+}
+
+#root .app-frame[data-theme='dark'] :is(
+  .nav-item:hover,
+  .button--quiet:hover:not(:disabled),
+  .notification-button:hover,
+  .theme-toggle:hover
+) {
+  border-color: #4a554a;
+  color: #f3f5ef;
+  background-color: #303831;
+}
+
+#root .app-frame[data-theme='dark'] .button--primary {
+  color: #f5f6f1;
+  background: #4c594a;
+}
+
+#root .app-frame[data-theme='dark'] .button--primary:hover:not(:disabled) {
+  background: #5c6b59;
+}
+
+#root .app-frame[data-theme='dark'] :is(.balance-positive, .group-summary-metric--positive strong) {
+  color: #9fc38d !important;
+}
+
+#root .app-frame[data-theme='dark'] :is(.balance-negative, .group-summary-metric--negative strong) {
+  color: #e49a89 !important;
+}
+
+#root .app-frame[data-theme='dark'] .mobile-nav button.is-active {
+  color: #dce9d3;
+  background: #303831;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #root {
+  color-scheme: dark;
+  color: #e7e9e3;
+  background-color: #171a18;
+}

@@ -1,6 +1,6 @@
 {
   "appId": "com.anujsaxena11.splitter",
-  "appName": "Splitter",
+  "appName": "EzSplittr",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

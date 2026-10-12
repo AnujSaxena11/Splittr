@@ -105,7 +105,7 @@ async function request(path, options = {}, hasRetried = false, csrfRetried = fal
         : "The request could not be completed.";
     if (response.status === 502) {
       throw new ApiError(
-        "Splitter API is unavailable. Start the backend and check its Redis and database startup configuration.",
+        "EzSplittr API is unavailable. Start the backend and check its Redis and database startup configuration.",
         response.status,
       );
     }
