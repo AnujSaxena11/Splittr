@@ -1,0 +1,136 @@
+:root {
+  --font-sans: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+
+  /* Primary Brand Violet */
+  --primary: #6E3EF7;
+  --primary-hover: #5D2EE8;
+  --primary-dark: #4F23D6;
+  --primary-light: #8A60F9;
+  --primary-gradient: linear-gradient(135deg, #7A47F9 0%, #5B27E4 100%);
+  --primary-glow: rgba(110, 62, 247, 0.35);
+  --primary-subtle: #F3EFFF;
+  --primary-border: #E6DCFF;
+
+  /* Neutrals & Dark Accents */
+  --dark-pill: #16161B;
+  --dark-pill-hover: #26262E;
+  --text-main: #141419;
+  --text-secondary: #575767;
+  --text-muted: #8E8E9B;
+  --text-light: #A8A8B7;
+
+  /* Backgrounds & Canvas */
+  --bg-canvas: #F8F7FD;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F4F3F9;
+  --border-line: #EBE9F5;
+  --border-subtle: #F0EEF8;
+
+  /* Color Tints for Sliders & Cards */
+  --tint-orange-bg: #FFF7ED;
+  --tint-orange-border: #FFEDD5;
+  --tint-orange-track: #FF9233;
+  --tint-orange-text: #C2410C;
+
+  --tint-purple-bg: #F5F1FF;
+  --tint-purple-border: #ECE4FF;
+  --tint-purple-track: #7A47F9;
+  --tint-purple-text: #5B21B6;
+
+  --tint-coral-bg: #FFF1F2;
+  --tint-coral-border: #FFE4E6;
+  --tint-coral-track: #FF5C5C;
+  --tint-coral-text: #BE123C;
+
+  --tint-mint-bg: #F0FDF9;
+  --tint-mint-border: #CCFBF1;
+  --tint-mint-track: #00C29F;
+  --tint-mint-text: #0F766E;
+
+  --tint-blue-bg: #EFF6FF;
+  --tint-blue-border: #DBEAFE;
+  --tint-blue-track: #3B82F6;
+  --tint-blue-text: #1D4ED8;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(22, 22, 27, 0.04);
+  --shadow-md: 0 8px 24px rgba(110, 62, 247, 0.08);
+  --shadow-lg: 0 16px 40px rgba(110, 62, 247, 0.12);
+  --shadow-fab: 0 10px 28px rgba(110, 62, 247, 0.45);
+  --shadow-dock: 0 18px 45px rgba(20, 20, 26, 0.35);
+
+  /* Geometry */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  scroll-behavior: smooth;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+::selection {
+  color: #FFFFFF;
+  background: var(--primary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D6E8;
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #BFB9DA;
+}

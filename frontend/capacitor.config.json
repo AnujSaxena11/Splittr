@@ -1,0 +1,8 @@
+{
+  "appId": "com.anujsaxena11.splitter",
+  "appName": "Splitter",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
