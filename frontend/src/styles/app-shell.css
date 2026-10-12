@@ -57,8 +57,7 @@ button:disabled {
   height: 28px;
   display: block;
   flex: 0 0 auto;
-  border-radius: 9px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .sidebar__label,
