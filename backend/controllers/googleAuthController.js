@@ -140,3 +140,108 @@ exports.finishGoogleAuth = async (req, res) => {
     return res.redirect(frontendRedirect("failed"));
   }
 };
+
+exports.nativeGoogleSignIn = async (req, res) => {
+  const { GOOGLE_CLIENT_ID } = process.env;
+  if (!GOOGLE_CLIENT_ID) {
+    return res.status(503).json({ message: "Google sign-in is not configured." });
+  }
+
+  let profile;
+  try {
+    const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: req.body.idToken,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    profile = ticket.getPayload();
+  } catch (error) {
+    return res.status(401).json({ message: "Google ID token is invalid or expired." });
+  }
+
+  if (
+    !profile?.sub ||
+    !profile.email ||
+    (profile.email_verified !== true && profile.email_verified !== "true")
+  ) {
+    return res.status(401).json({ message: "Google did not provide a verified email address." });
+  }
+
+  try {
+    const session = await sequelize.transaction(async (transaction) => {
+      let user = await User.findOne({
+        where: { google_id: profile.sub },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!user) {
+        user = await User.findOne({
+          where: { email: profile.email.toLowerCase() },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        if (user?.google_id && user.google_id !== profile.sub) {
+          const error = new Error("This email is linked to another Google account.");
+          error.statusCode = 409;
+          throw error;
+        }
+        if (user) {
+          await user.update({ google_id: profile.sub }, { transaction });
+        } else {
+          user = await User.create({
+            name: profile.name || profile.email.split("@")[0],
+            email: profile.email.toLowerCase(),
+            password: null,
+            google_id: profile.sub,
+          }, { transaction });
+        }
+      }
+
+      const refreshToken = crypto.randomBytes(64).toString("hex");
+      const authSession = await Session.create({
+        userId: user.id,
+        token_hash: crypto.createHash("sha256").update(refreshToken).digest("hex"),
+        device_name: req.get("user-agent") || "Unknown",
+        user_browser: req.get("user-agent") || "Unknown",
+        ip_address: req.ip || "Unknown",
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      }, { transaction });
+      return { user, authSession, refreshToken };
+    });
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+      path: "/",
+    };
+    const jwt = require("jsonwebtoken");
+    const accessToken = jwt.sign(
+      { userId: session.user.id, session_id: session.authSession.id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" },
+    );
+    res.cookie("refreshToken", session.refreshToken, {
+      ...cookieOptions,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 15 * 60 * 1000,
+    });
+    return res.status(200).json({
+      message: "Google sign-in successful.",
+      user: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+      },
+    });
+  } catch (error) {
+    if (error.statusCode === 409) {
+      return res.status(409).json({ message: error.message });
+    }
+    console.error("Native Google sign-in failed:", error.message);
+    return res.status(500).json({ message: "Unable to complete Google sign-in." });
+  }
+};

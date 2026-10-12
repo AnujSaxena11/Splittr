@@ -3,6 +3,8 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { api } from './api'
+import { Capacitor } from '@capacitor/core'
+import { signInWithGoogle } from './googleSignIn'
 
 const realtimeMock = vi.hoisted(() => {
   const listeners = new Map()
@@ -20,6 +22,7 @@ const realtimeMock = vi.hoisted(() => {
 vi.mock('./api', () => ({
   api: {
     googleLoginUrl: '/api/auth/google',
+    googleNativeSignIn: vi.fn(),
     me: vi.fn(),
     login: vi.fn(),
     signup: vi.fn(),
@@ -51,6 +54,10 @@ vi.mock('./api', () => ({
   },
 }))
 
+vi.mock('./googleSignIn', () => ({
+  signInWithGoogle: vi.fn(),
+}))
+
 vi.mock('./realtime', () => ({
   connectRealtime: realtimeMock.connectRealtime,
 }))
@@ -59,6 +66,7 @@ const currentUser = { id: 7, name: 'Jenny Wilson', email: 'jenny@example.com' }
 
 function setDefaultResponses() {
   api.me.mockResolvedValue({ user: currentUser })
+  api.googleNativeSignIn.mockResolvedValue({ message: 'Google sign-in successful.' })
   api.listExpenses.mockResolvedValue({ message: 'No expense exist' })
   api.listGroups.mockResolvedValue({ groups: [] })
   api.createExpense.mockResolvedValue({ message: 'Expense added successfully' })
@@ -124,6 +132,21 @@ describe('Splitter application', () => {
     expect(screen.getByLabelText('Your name')).toBeRequired()
   })
 
+  it('uses native Google sign-in in the Android app and preserves web redirect sign-in', async () => {
+    const platformSpy = vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android')
+    api.me.mockRejectedValueOnce({ status: 401 }).mockResolvedValueOnce({ user: currentUser })
+    signInWithGoogle.mockResolvedValue('google-id-token')
+
+    renderApp()
+    await screen.findByRole('heading', { name: 'Sign in to Splitter' })
+    await userEvent.click(screen.getByRole('button', { name: 'Continue with Google' }))
+
+    await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
+    expect(signInWithGoogle).toHaveBeenCalledOnce()
+    expect(api.googleNativeSignIn).toHaveBeenCalledWith({ idToken: 'google-id-token' })
+    platformSpy.mockRestore()
+  })
+
   it('toggles and persists the selected color theme', async () => {
     const view = renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
@@ -143,6 +166,7 @@ describe('Splitter application', () => {
   })
 
   it('provides a settings placeholder and an unpublished Android download page', async () => {
+    vi.stubEnv('VITE_ANDROID_DOWNLOAD_URL', '')
     renderApp()
     await screen.findByRole('heading', { name: /^Welcome back, Jenny/ })
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core'
 import { App as CapacitorApp } from '@capacitor/app'
 import { api } from './api'
+import { signInWithGoogle } from './googleSignIn'
 import { connectRealtime } from './realtime'
 import './App.css'
 
@@ -274,6 +275,26 @@ function AuthScreen({ onAuthenticated }) {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setError('')
+    setNotice('')
+    if (Capacitor.getPlatform() !== 'android') {
+      window.location.assign(api.googleLoginUrl)
+      return
+    }
+
+    setBusy(true)
+    try {
+      const idToken = await signInWithGoogle()
+      await api.googleNativeSignIn({ idToken })
+      await onAuthenticated()
+    } catch (signInError) {
+      setError(getErrorMessage(signInError))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const isReset = mode === 'reset'
   const isSignup = mode === 'signup'
   const isForgot = mode === 'forgot'
@@ -314,8 +335,8 @@ function AuthScreen({ onAuthenticated }) {
           </form>
           {(mode === 'login' || isSignup) && <div className="auth-oauth">
             <span>or continue with</span>
-            <button className="button button--quiet button--full google-button" type="button" onClick={() => window.location.assign(api.googleLoginUrl)}>
-              <GoogleMark /> Continue with Google
+            <button className="button button--quiet button--full google-button" type="button" onClick={handleGoogleSignIn} disabled={busy}>
+              <GoogleMark /> {busy ? 'Connecting to Google…' : 'Continue with Google'}
             </button>
           </div>}
           <div className="auth-links">

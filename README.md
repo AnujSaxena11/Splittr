@@ -23,7 +23,7 @@ Copy `backend/.env.example` to `backend/.env` and set the following values. Gene
 | `REDIS_URL` | Yes | Redis connection for atomic token-bucket rate limits |
 | `CORS_ORIGINS` | Yes in production | Comma-separated exact allowed browser origins |
 | `FRONTEND_URL` | Yes in production | Exact frontend origin for OAuth redirects; must also be in `CORS_ORIGINS` |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | Yes in production | Google OAuth web client and registered callback URL |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | Yes in production | Google OAuth web client and registered callback URL; `GOOGLE_CLIENT_ID` is also the expected audience for native Android ID tokens |
 | `EMAIL_USER`, `EMAIL_PASS` | Yes in production | SMTP sender and application password for password reset |
 | `PORT` | No | API port; defaults to `8080` |
 | `NODE_ENV` | No | Set to `production` for secure cookies, TLS defaults, and strict startup configuration |
@@ -102,6 +102,7 @@ The Android application wraps the existing Vite frontend; it does not copy or re
 
 - Node.js `^20.19.0` or `>=22.12.0`, npm, Android Studio, Android SDK Platform 36, and JDK 21.
 - Deploy the existing Node.js backend over HTTPS first. Before a native build, configure `VITE_API_URL` to its real HTTPS API origin (including any configured API base path). No deployed backend URL is present in this repository, so there is intentionally no invented production URL or API fallback in the Android build.
+- Configure Google OAuth with the existing Web application client and an Android client in the same Google Cloud project. The Android client must use package name `com.anujsaxena11.splitter` and the SHA-1 fingerprint(s) for the APK signing certificate(s). Set `VITE_GOOGLE_WEB_CLIENT_ID` to the Web application client ID in the Android build environment; it is a public client identifier, not a secret. Keep the web client's ID in backend `GOOGLE_CLIENT_ID`. Android uses Credential Manager to obtain an ID token, which the backend verifies before creating the app session. The website continues using the web redirect flow.
 - Add `https://localhost` to the backend's exact `CORS_ORIGINS`, alongside the deployed website origin. Capacitor Android is configured to use this HTTPS WebView origin. The backend already sets secure `SameSite=None` authentication/CSRF cookies in production; the Android WebView is configured to accept the cross-site API cookies. Keep production CORS restricted to the actual website origin and this app origin.
 - The website build variable `VITE_ANDROID_DOWNLOAD_URL` must be a public HTTPS URL to a real APK asset. Leave it unset until the first APK is published: the app page then shows a disabled “APK not published yet” control rather than a dead link. Set it in the frontend hosting provider's build environment and redeploy the website to activate downloads. This repository does not identify the website hosting provider, so its static-file support and upload-size limits cannot be verified here.
 
@@ -133,6 +134,7 @@ From `frontend`, install exactly the lockfile dependencies and set the real back
 ```powershell
 npm ci
 $env:VITE_API_URL = "https://<your-deployed-backend-origin>"
+$env:VITE_GOOGLE_WEB_CLIENT_ID = "<your-google-web-application-client-id>"
 # Optional: set this to the public release asset URL when it is available.
 $env:VITE_ANDROID_DOWNLOAD_URL = "https://github.com/<public-owner>/<public-release-repo>/releases/latest/download/splitter-android.apk"
 npm run android:release

@@ -66,9 +66,21 @@ const verifyOTPSchema = Joi.object({
         .messages({ 'any.only': 'Passwords do not match' })
 });
 
+const googleNativeSignInSchema = Joi.object({
+    idToken: Joi.string()
+        .max(8192)
+        .pattern(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)
+        .required()
+        .messages({
+            'string.pattern.base': 'Google ID token is invalid',
+            'string.empty': 'Google ID token is required',
+        })
+});
+
 module.exports = {
     signUpSchema,
     loginSchema,
     forgetPasswordSchema,
-    verifyOTPSchema
+    verifyOTPSchema,
+    googleNativeSignInSchema
 }

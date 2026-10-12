@@ -23,6 +23,14 @@ function responseRecorder() {
             this.cookies.push({ name, value: "", cleared: true });
             return this;
         },
+        status(statusCode) {
+            this.statusCode = statusCode;
+            return this;
+        },
+        json(body) {
+            this.body = body;
+            return this;
+        },
         redirect(target) {
             this.redirectTarget = target;
             return this;
@@ -35,6 +43,7 @@ test("Google OAuth validates state and creates a server-side session for a verif
         generateCodeVerifierAsync: OAuth2Client.prototype.generateCodeVerifierAsync,
         generateAuthUrl: OAuth2Client.prototype.generateAuthUrl,
         getToken: OAuth2Client.prototype.getToken,
+        verifyIdToken: OAuth2Client.prototype.verifyIdToken,
         request: OAuth2Client.prototype.request,
         setCredentials: OAuth2Client.prototype.setCredentials,
         transaction: sequelize.transaction,
@@ -72,6 +81,7 @@ test("Google OAuth validates state and creates a server-side session for a verif
             generateCodeVerifierAsync: originals.generateCodeVerifierAsync,
             generateAuthUrl: originals.generateAuthUrl,
             getToken: originals.getToken,
+            verifyIdToken: originals.verifyIdToken,
             request: originals.request,
             setCredentials: originals.setCredentials
         });
@@ -112,4 +122,62 @@ test("Google OAuth validates state and creates a server-side session for a verif
         ip: "127.0.0.1"
     }, invalidResponse);
     assert.equal(invalidResponse.redirectTarget, "http://localhost:5173/?oauth=failed");
+});
+
+test("native Google sign-in verifies the ID token and creates a cookie session", async (t) => {
+    const originals = {
+        verifyIdToken: OAuth2Client.prototype.verifyIdToken,
+        transaction: sequelize.transaction,
+        findUser: User.findOne,
+        createUser: User.create,
+        createSession: Session.create
+    };
+    let createdUser;
+    let createdSession;
+    let verificationOptions;
+
+    OAuth2Client.prototype.verifyIdToken = async (options) => {
+        verificationOptions = options;
+        return {
+            getPayload: () => ({
+                sub: "native-google-user",
+                email: "native@example.com",
+                email_verified: true,
+                name: "Native User"
+            })
+        };
+    };
+    sequelize.transaction = async (callback) => callback({ LOCK: { UPDATE: "UPDATE" } });
+    User.findOne = async () => null;
+    User.create = async (values) => {
+        createdUser = { id: 88, ...values };
+        return createdUser;
+    };
+    Session.create = async (values) => {
+        createdSession = { id: 99, ...values };
+        return createdSession;
+    };
+    t.after(() => {
+        OAuth2Client.prototype.verifyIdToken = originals.verifyIdToken;
+        sequelize.transaction = originals.transaction;
+        User.findOne = originals.findUser;
+        User.create = originals.createUser;
+        Session.create = originals.createSession;
+    });
+
+    const response = responseRecorder();
+    await googleAuth.nativeGoogleSignIn({
+        body: { idToken: "header.payload.signature" },
+        get: () => "android-test-agent",
+        ip: "127.0.0.1"
+    }, response);
+
+    assert.equal(verificationOptions.audience, "test-client-id");
+    assert.equal(createdUser.email, "native@example.com");
+    assert.equal(createdUser.google_id, "native-google-user");
+    assert.equal(createdSession.userId, createdUser.id);
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.message, "Google sign-in successful.");
+    assert.ok(response.cookies.some((cookie) => cookie.name === "accessToken"));
+    assert.ok(response.cookies.some((cookie) => cookie.name === "refreshToken"));
 });

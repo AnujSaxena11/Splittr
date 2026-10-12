@@ -3,7 +3,7 @@ const { createUser, loginUser, logoutUser, forgetPassword, verifyOTP, getMe, get
 const router = express.Router();
 
 const validate = require("../middlewares/validate");
-const { signUpSchema, loginSchema, forgetPasswordSchema, verifyOTPSchema } = require("../validations/authValidator");
+const { signUpSchema, loginSchema, forgetPasswordSchema, verifyOTPSchema, googleNativeSignInSchema } = require("../validations/authValidator");
 const authMiddleware = require("../middlewares/authMiddleware");
 const { authRateLimit } = require("../middlewares/rateLimiter");
 const { issueCsrfToken, cookieOptions } = require("../middlewares/csrfProtection");
@@ -16,6 +16,7 @@ router.get("/csrf", (req, res) => {
 });
 router.get("/google", authRateLimit, googleAuth.startGoogleAuth);
 router.get("/google/callback", authRateLimit, googleAuth.finishGoogleAuth);
+router.post("/google/native", authRateLimit, validate(googleNativeSignInSchema), googleAuth.nativeGoogleSignIn);
 router.post("/signup", authRateLimit, validate(signUpSchema), createUser);
 router.post("/login", authRateLimit, validate(loginSchema), loginUser);
 router.post("/logout", authRateLimit, authMiddleware, logoutUser);

@@ -4,6 +4,7 @@ let csrfToken;
 const refreshExemptPaths = new Set([
   "/auth/login",
   "/auth/signup",
+  "/auth/google/native",
   "/auth/refresh",
   "/auth/forgetPassword",
   "/auth/verifyOTP",
@@ -126,6 +127,7 @@ async function request(path, options = {}, hasRetried = false, csrfRetried = fal
 export const api = {
   request,
   googleLoginUrl: `${API_BASE}/auth/google`,
+  googleNativeSignIn: (body) => request("/auth/google/native", { method: "POST", body }),
   getCsrfToken,
   clearCsrfToken: () => { csrfToken = undefined; },
   signup: (body) => request("/auth/signup", { method: "POST", body }),

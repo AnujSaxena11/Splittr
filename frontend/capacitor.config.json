@@ -4,5 +4,18 @@
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
+  },
+  "plugins": {
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": false,
+        "twitter": false,
+        "telegram": false,
+        "linkedin": false,
+        "tiktok": false
+      }
+    }
   }
 }

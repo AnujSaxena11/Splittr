@@ -27,6 +27,10 @@ if (!isPublicHttpsUrl(buildEnv.VITE_API_URL || '')) {
   fail('Set VITE_API_URL to the deployed backend HTTPS origin before building (for example, the origin supplied by your API host).')
 }
 
+if (!buildEnv.VITE_GOOGLE_WEB_CLIENT_ID?.trim()) {
+  fail('Set VITE_GOOGLE_WEB_CLIENT_ID to the Google Web application client ID used by the backend before building.')
+}
+
 if (buildEnv.VITE_ANDROID_DOWNLOAD_URL && !isPublicHttpsUrl(buildEnv.VITE_ANDROID_DOWNLOAD_URL)) {
   fail('VITE_ANDROID_DOWNLOAD_URL must be a public HTTPS URL when set.')
 }
