@@ -1,19 +1,16 @@
 const { Sequelize } = require("sequelize");
-// const sequelize = new Sequelize(
-//     process.env.DB_NAME,
-//     process.env.DB_USER,
-//     process.env.DB_PASSWORD,
-//     {
-//         host: process.env.DB_HOST,
-//         dialect: "postgres",
-//         logging: false,
-//         pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
-//         ...(process.env.DB_SSL === "true" || (process.env.NODE_ENV === "production" && process.env.DB_SSL !== "false")
-//             ? { dialectOptions: { ssl: { require: true, rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" } } }
-//             : {})
-//     }
-// );
-const sequelize = new Sequelize(process.env.DB_URL, {
+const dbUrl = process.env.DB_URL?.trim();
+let dbUrlProtocol;
+try {
+    dbUrlProtocol = dbUrl && new URL(dbUrl).protocol;
+} catch {
+    throw new Error("DB_URL is invalid; set it to the full PostgreSQL URL starting with postgres:// or postgresql://");
+}
+if (!["postgres:", "postgresql:"].includes(dbUrlProtocol)) {
+    throw new Error("DB_URL is missing or invalid; set it to the full PostgreSQL URL starting with postgres:// or postgresql://");
+}
+
+const sequelize = new Sequelize(dbUrl, {
     dialect: "postgres",
     logging: false,
     pool: {
