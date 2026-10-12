@@ -906,9 +906,11 @@ describe('EzSplittr application', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Report scope' }))
     await userEvent.click(screen.getByRole('option', { name: 'Group' }))
+    expect(screen.queryByRole('listbox', { name: 'Report scope' })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Group' }))
     expect(screen.getByRole('option', { name: 'Weekend plans' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('option', { name: 'Weekend plans' }))
+    expect(screen.queryByRole('listbox', { name: 'Group' })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Build report' }))
 
     await waitFor(() => expect(api.getReport).toHaveBeenCalledWith(expect.objectContaining({

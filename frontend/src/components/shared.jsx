@@ -44,7 +44,6 @@ export function ThemedSelect({
   const id = useId()
   const rootRef = useRef(null)
   const triggerRef = useRef(null)
-  const optionRefs = useRef([])
   const [open, setOpen] = useState(false)
   const selectedIndex = Math.max(
     options.findIndex((option) => option.value === String(value)),
@@ -56,13 +55,12 @@ export function ThemedSelect({
   useEffect(() => {
     if (!open) return undefined
 
-    optionRefs.current[activeIndex]?.focus()
     const onPointerDown = (event) => {
       if (!rootRef.current?.contains(event.target)) setOpen(false)
     }
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [open, activeIndex])
+  }, [open])
 
   function openMenu(index = selectedIndex) {
     setActiveIndex(index)
@@ -116,6 +114,7 @@ export function ThemedSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? `${id}-options` : undefined}
+        aria-activedescendant={open ? `${id}-option-${activeIndex}` : undefined}
         onClick={() => (open ? setOpen(false) : openMenu())}
       >
         <span>{selectedOption?.label || ''}</span>
@@ -128,17 +127,20 @@ export function ThemedSelect({
           id={`${id}-options`}
           role="listbox"
           aria-label={label}
+          aria-activedescendant={`${id}-option-${activeIndex}`}
         >
           {options.map((option, index) => (
             <div
               key={option.value}
-              ref={(element) => { optionRefs.current[index] = element }}
               className={`themed-select__option ${option.value === String(value) ? 'is-selected' : ''}`}
               id={`${id}-option-${index}`}
               role="option"
               aria-selected={option.value === String(value)}
               tabIndex={-1}
-              onClick={() => chooseOption(option)}
+              onPointerDown={(event) => {
+                event.preventDefault()
+                chooseOption(option)
+              }}
               onMouseMove={() => setActiveIndex(index)}
             >
               <span>{option.label}</span>
