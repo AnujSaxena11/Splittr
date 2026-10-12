@@ -48,7 +48,7 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
       </section>
 
       <form className="surface-panel report-filters" onSubmit={submit}>
-        <label className="field">
+        <div className="field">
           <span>Report scope</span>
           <ThemedSelect
             label="Report scope"
@@ -59,10 +59,10 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
               { value: 'group', label: 'Group' },
             ]}
           />
-        </label>
+        </div>
 
         {scope === 'group' && (
-          <label className="field">
+          <div className="field">
             <span>Group</span>
             <ThemedSelect
               label="Group"
@@ -80,10 +80,10 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
                 }),
               ]}
             />
-          </label>
+          </div>
         )}
 
-        <label className="field">
+        <div className="field">
           <span>Report type</span>
           <ThemedSelect
             label="Report type"
@@ -96,11 +96,11 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
               { value: 'category', label: 'Category focus' },
             ]}
           />
-        </label>
+        </div>
 
         {type === 'monthly' && (
           <div className="field-row">
-            <label className="field">
+            <div className="field">
               <span>Month</span>
               <ThemedSelect
                 label="Month"
@@ -113,7 +113,7 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
                     }),
                 }))}
               />
-            </label>
+            </div>
             <Field
               label="Year"
               type="number"
@@ -147,7 +147,7 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
         )}
 
         {type === 'category' && (
-          <label className="field">
+          <div className="field">
             <span>Category</span>
             <ThemedSelect
               label="Category"
@@ -155,7 +155,7 @@ export function ReportsPage({ report, groups, loading, error, onSubmit }) {
               onChange={setCategory}
               options={categories.map((item) => ({ value: item, label: item }))}
             />
-          </label>
+          </div>
         )}
 
         <button

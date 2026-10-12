@@ -137,10 +137,7 @@ export function ThemedSelect({
               role="option"
               aria-selected={option.value === String(value)}
               tabIndex={-1}
-              onPointerDown={(event) => {
-                event.preventDefault()
-                chooseOption(option)
-              }}
+              onClick={() => chooseOption(option)}
               onMouseMove={() => setActiveIndex(index)}
             >
               <span>{option.label}</span>
